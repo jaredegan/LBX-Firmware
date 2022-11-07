@@ -91,6 +91,16 @@ int specialArr1[4] = {228,28,28,228};   // L, ModX+L, ModY+L
 int specialArr2[4] = {179,77,77,179};   // R, ModX+R, ModY+R
 int specialArr4[4] = {189,67,87,169};   // ModY+B
 
+// Jared - toggleable profiles
+const int jaredUltimateProfile = 0;
+const int jaredCelesteProfile = 1;
+
+int currentProfile = jaredUltimateProfile;
+
+// Jared - extra docs
+// JFAKey is Dpad toggle
+// ------------------
+
 void setup() {
 // Define inputs & outputs
   pinMode(15, INPUT_PULLUP); 
@@ -130,6 +140,7 @@ void loop() {
 //read pins & set longBtnPress (which is a binary map of all 21 inputs)
 //Example: 00000000000010000001
 
+    // JE: Buttons coming off the board? - Original layout
     //reverse polarity here so that all bool operators are inverted. Original pin purpose is commented on the right. 
     //You can remap here by replacing bool(old purpose) with bool(new purpose). Be sure to keep the names correctly formatted. We will have a video if thi sis confusing.     
     boolLeft    = !((PINB & (1 << 1)) >> 1); // PINB1 Left
@@ -153,6 +164,76 @@ void loop() {
     boolLS      = !((PINF & (1 << 5)) >> 5); // PINF5 LS
     boolMS      = !((PINF & (1 << 4)) >> 4); // PINF4 MS
     boolStart   = !((PINF & (1 << 0)) >> 0); // PINF0 Start
+
+    // Changing profiles
+    // Copy what's pressed for easier swapping.
+    bool unMappedBoolLeft = boolLeft;
+    bool unMappedBoolDown = boolDown;
+    bool unMappedBoolRight = boolRight;
+    bool unMappedBoolL = boolL;
+    bool unMappedBoolModX = boolModX;
+    bool unMappedBoolJFAKey = boolJFAKey;
+    bool unMappedBoolModY = boolModY;
+    bool unMappedBoolCDown = boolCDown;
+    bool unMappedBoolCLeft = boolCLeft;
+    bool unMappedBoolA = boolA;
+    bool unMappedBoolCRight = boolCRight;
+    bool unMappedBoolCUp = boolCUp;
+    bool unMappedBoolGCUp = boolGCUp;
+    bool unMappedBoolZ = boolZ;
+    bool unMappedBoolX = boolX;
+    bool unMappedBoolB = boolB;
+    bool unMappedBoolR = boolR;
+    bool unMappedBoolY = boolY;
+    bool unMappedBoolLS = boolLS;
+    bool unMappedBoolMS = boolMS;
+    bool unMappedBoolStart = boolStart;
+
+    // Hold all the button on the left, and the top right button to start to switch profiles
+    bool attemptingToChangeProfile = boolLeft && boolDown && boolRight && boolL && boolModX && boolModY && boolJFAKey && boolMS;
+    if (attemptingToChangeProfile) {
+      // Buttons in top right represent modes (except for top right)
+      // 0 1 2
+      // 3 4 5 6
+      if (boolR) { // 0
+        currentProfile = jaredUltimateProfile;
+      } else if (boolY) { // 1
+        currentProfile = jaredCelesteProfile;
+      }
+    }
+
+    if (currentProfile == jaredUltimateProfile) {
+      // Jared swaps (Original on the right)
+      // LS is "light shield", some melee thing, it doesn't matter. Should probably just set it false.
+      boolLS       = !((PINC & (1 << 6)) >> 6); // PINC6 X
+      // I think MS is also some BS melee thing
+      boolMS       = false;
+
+      // TODO: Can probably just swap a bunch of buttons so it's the same profile as my pro controller set up
+      boolX        = !((PINF & (1 << 5)) >> 5); // PINF5 LS
+      boolJFAKey   = !((PINF & (1 << 4)) >> 4); // PINF4 MS
+
+      // Trying to map original DpadToggle to just be another b (I end up not using it)
+      boolB       = !((PINC & (1 << 7)) >> 7) || !((PIND & (1 << 1)) >> 1); // PINC7 B || JFAKey
+    } else if (currentProfile == jaredCelesteProfile) {
+      // Can just be no swaps for now
+      // If it's working, the original LS button won't do anything
+      // This matches your regular controller config, which is:
+      // A is dash
+      // X is jump
+      // L is climb
+
+      // The changes to LBX:
+      boolGCUp = unMappedBoolGCUp || unMappedBoolModX;
+      boolModX = false; // No need for modx
+      
+      boolX = unMappedBoolY;
+      boolY = unMappedBoolX;
+
+      boolA = unMappedBoolR;
+
+      boolL = unMappedBoolA;
+    }
 
     longBtnPress = 0;
     if (boolLeft)   {bitSet(longBtnPress, 0);}
